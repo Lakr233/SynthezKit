@@ -85,7 +85,10 @@ public func scrollView<Result>(
         let slop = 4.0
         let wantsX = axes.contains(.horizontal) && abs(dx) > slop && (axes.contains(.vertical) || abs(dx) > abs(dy))
         let wantsY = axes.contains(.vertical) && abs(dy) > slop && (axes.contains(.horizontal) || abs(dy) > abs(dx))
-        if inside, wantsX || wantsY {
+        // Like UIScrollView, a press during a fling only stops it: the
+        // content under the finger moved, so it must not be tapped.
+        let catchesFling = abs(state.vx) > 40 || abs(state.vy) > 40
+        if inside, wantsX || wantsY || catchesFling {
             ctx.capturePointer(id)
             state.dragging = true
             state.startX = state.x

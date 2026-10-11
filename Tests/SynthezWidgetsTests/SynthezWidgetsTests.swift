@@ -67,8 +67,8 @@ struct WidgetsTests {
             results.append(ui.frame(time: Double(i) / 60, size: SZSize(640, 400), events: []) { gallery.draw(&$0) })
         }
         // Cards measure their content on the first frame, then settle.
-        #expect(try !(#require(results.last?.changed)))
-        #expect(try !(#require(results.last?.needsAnotherFrame)))
+        #expect(try !#require(results.last?.changed))
+        #expect(try !#require(results.last?.needsAnotherFrame))
         #expect(ui.drawList.commandCount > 100)
     }
 
@@ -193,6 +193,46 @@ struct WidgetsTests {
             frames += 1
         }
         #expect(offset.y >= 50)
+    }
+
+    @Test func `press during a fling stops it without tapping`() {
+        let ui = SZUI(palette: SZTheme.synthPalette())
+        var offset = SZPoint.zero
+        var tapped: Int?
+        var t = 0.0
+        func frame(_ events: [SZInputEvent]) -> SZFrameResult {
+            t += 1.0 / 60
+            return ui.frame(time: t, size: SZSize(100, 100), events: events) { ctx in
+                scrollView(&ctx, content: SZSize(100, 4000), in: SZRect(0, 0, 100, 100)) { c, scroll in
+                    offset = scroll.offset
+                    for i in 0 ..< 200 where button(&c, "B\(i)", key: .int(i), in: SZRect(0, i * 20, 80, 18)).clicked {
+                        tapped = i
+                    }
+                }
+            }
+        }
+        _ = frame([])
+        _ = frame([.pointerDown(SZPoint(90, 90), kind: .touch)])
+        for y in stride(from: 80, through: 10, by: -14) {
+            _ = frame([.pointerMove(SZPoint(90, y), kind: .touch)])
+        }
+        _ = frame([.pointerUp(SZPoint(90, 10), kind: .touch)])
+        for _ in 0 ..< 4 {
+            _ = frame([])
+        }
+        let before = offset.y
+        _ = frame([])
+        let moving = offset.y
+        _ = frame([.pointerDown(SZPoint(40, 50), kind: .touch)])
+        _ = frame([.pointerUp(SZPoint(40, 50), kind: .touch)])
+        let stopped = offset.y
+        for _ in 0 ..< 30 {
+            _ = frame([])
+        }
+        #expect(moving > before + 5, "still flinging when pressed")
+        #expect(tapped == nil)
+        #expect(abs(stopped - moving) <= 1)
+        #expect(abs(offset.y - stopped) <= 2)
     }
 
     @Test func `text field types and commits`() {

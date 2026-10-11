@@ -41,10 +41,21 @@ SynthezCore     Foundation only; runs under `swift test` on macOS
   Animation     Exponential easing independent of frame rate
   Schedule      SZFrameScheduler, SZScreen (fixed resolution or pixel scale), SZCRTSettings
 SynthezWidgets  Theme, font, icons, widgets
-SynthezKit      SZCanvasView, SZMetalPresenter, keyboard proxy, accessibility elements
+SynthezKit      SZCanvasEngine (shared), SZCanvasView+UIKit, SZCanvasView+AppKit,
+                SZCanvas (SwiftUI), SZMetalPresenter, keyboard and accessibility bridges
 SynthezGallery  The five demo pages
 SynthezBench    Headless timings and PNG snapshots
 ```
+
+## Platforms
+
+`SZCanvasEngine` holds everything that does not depend on the UI framework: the display link, the scheduler, the frame, rasterizing, presenting, coordinate mapping and the accessibility items. Each platform view is a thin shell over it:
+
+- **UIKit** (`#if canImport(UIKit)`): touches with coalesced samples, hover and trackpad scrolling through gesture recognizers, a `UIKeyInput` proxy for the keyboard, `UIAccessibilityElement`s.
+- **AppKit** (`#if !canImport(UIKit) && canImport(AppKit)`): a flipped, layer-backed view; mouse, tracking-area hover, precise and line-based scroll wheels, `keyDown` mapped to keys and text, `NSAccessibilityElement`s.
+- **SwiftUI**: `SZCanvas` conforms to `UIViewRepresentable` when UIKit is available and to `NSViewRepresentable` otherwise.
+
+Mac Catalyst takes the UIKit path. Following ColorfulX, no file checks the OS by name.
 
 ## Frame lifecycle
 
@@ -74,7 +85,8 @@ When CRT is off, a single pass resolves palette colors with sharp-bilinear scali
 | Core layout, identity, routing, raster, filters | Done |
 | Widgets listed in the README | Done |
 | Metal presentation, CRT, keyboard, accessibility | Done |
-| Example app | Done |
+| macOS (AppKit) and SwiftUI | Done |
+| Example app (SwiftUI, iOS and macOS) | Done |
 | IME marked text and text selection (needs full `UITextInput`) | Planned |
 | CJK text (CoreText rasterized to 1 bit, with a glyph cache) | Planned |
 | Hardware keyboard shortcut table | Planned |

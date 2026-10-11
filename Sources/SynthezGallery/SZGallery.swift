@@ -109,7 +109,7 @@ public final class SZGallery {
             bar.gap = 6
             bar.align = .center
             label(&bar, "SYNTH-KIT", color: theme.accent)
-            label(&bar, "IMMEDIATE MODE UI FOR UIKIT", color: theme.textDim)
+            label(&bar, "IMMEDIATE MODE PIXEL UI", color: theme.textDim)
         }
 
         if let tapped = tabs(&ctx, Page.allCases.map(\.title), selected: page.rawValue, key: "tabs", in: ctx.cutTop(13, gap: 5)) {

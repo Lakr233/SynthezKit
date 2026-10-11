@@ -2,7 +2,7 @@
 
 # SynthezKit
 
-An immediate-mode, pixel-art UI framework for UIKit.
+An immediate-mode, pixel-art UI framework for UIKit, AppKit and SwiftUI.
 
 You describe the whole screen in plain Swift every frame. SynthezKit lays it out on a grid of virtual pixels, rasterizes it into a 256-color indexed framebuffer on the CPU, and puts it on screen through Metal, optionally through a physically modeled CRT. When nothing moves, the display link pauses and the view costs nothing.
 
@@ -10,7 +10,7 @@ You describe the whole screen in plain Swift every frame. SynthezKit lays it out
 import SynthezKit
 import SynthezWidgets
 
-let canvas = SZCanvasView(palette: SZTheme.synthPalette(), background: 1, resolution: .pixelScale(3))
+let canvas = SZCanvasView(palette: SZTheme.synthPalette(), background: 1, resolution: .pointScale(1))
 var count = 0
 canvas.body = { ctx in
     ctx.inset(8)
@@ -18,6 +18,21 @@ canvas.body = { ctx in
         if button(&row, "-").clicked { count -= 1 }
         label(&row, String(count))
         if button(&row, "+").clicked { count += 1 }
+    }
+}
+```
+
+Or in SwiftUI, on iOS and macOS alike:
+
+```swift
+struct ContentView: View {
+    let model = Model() // a class: the body reads and writes it every frame
+
+    var body: some View {
+        SZCanvas(palette: SZTheme.synthPalette(), background: 1, resolution: .pointScale(1.5)) { ctx in
+            if button(&ctx, "+").clicked { model.count += 1 }
+            label(&ctx, String(model.count))
+        }
     }
 }
 ```
@@ -32,6 +47,7 @@ canvas.body = { ctx in
 - **Touch-first input.** Taps, drags with capture, flings with UIKit-like deceleration, rubber-banding and snapping, trackpad scrolling and hover, and input trickling so a gesture that lands within one frame is never lost.
 - **CRT post-process.** Phosphor afterglow, halation, brightness-dependent scanline beams, aperture, slot and shadow masks, and vignette, all in linear light.
 - **Keyboard and accessibility.** Text fields drive the system keyboard, and every interactive widget is a VoiceOver element that can be activated and adjusted, which also makes the UI scriptable from UI tests.
+- **UIKit, AppKit and SwiftUI.** One `SZCanvasView` per platform over a shared engine: touch, pointer hover and trackpad on iOS; mouse, hover, scroll wheel and keyboard on the Mac; `SZCanvas` wraps either for SwiftUI. Platform code is selected with `canImport(UIKit)` first and `canImport(AppKit)` otherwise, never by OS name.
 
 ## Widgets
 
@@ -49,10 +65,11 @@ canvas.body = { ctx in
 | --- | --- |
 | ![Controls page](./Artworks/controls.png) | ![Scroll page](./Artworks/scroll.png) |
 
+![The example app on macOS](./Artworks/macos.png)
+
 ## Requirements
 
-- iOS 15, Mac Catalyst 15 (`SynthezKit`)
-- macOS 12 for the platform-independent `SynthezCore`, `SynthezWidgets` and the benchmark
+- iOS 15, Mac Catalyst 15 or macOS 12
 - Swift 6.2 tools, Swift 6 language mode
 
 ## Installation
@@ -69,7 +86,7 @@ Then depend on the products you need:
 | --- | --- |
 | `SynthezCore` | Layout, identity, input routing, draw list, CPU rasterizer, palette, scheduler. Foundation only. |
 | `SynthezWidgets` | Theme, 5×7 pixel font, icons and all widgets. |
-| `SynthezKit` | `SZCanvasView`: Metal presentation, display link, touch, keyboard, accessibility and CRT. |
+| `SynthezKit` | `SZCanvasView` (UIKit or AppKit) and `SZCanvas` (SwiftUI): Metal presentation, display link, input, keyboard, accessibility and CRT. |
 | `SynthezGallery` | The demo pages, shared by the example app, tests and benchmark. |
 
 ## How a frame works
@@ -84,7 +101,9 @@ See [Documents/Design.md](./Documents/Design.md) for the architecture and the re
 
 ## Example app
 
-`Example/SynthezKitExample.xcodeproj` runs the gallery: five pages (Core, Controls, Text, Scroll, CRT) that exercise every widget. It references this package locally.
+`Example/SynthezKitExample.xcodeproj` is a SwiftUI app for iOS and macOS that runs the gallery: five pages (Core, Controls, Text, Scroll, CRT) that exercise every widget. It references this package locally. Launch it with `-SZDemoTour YES` to watch a scripted walk through every page.
+
+Resolution is set in virtual pixels per view point with `.pointScale`, so pixels look the same size on 1×, 2× and 3× screens; `.pixelScale` (per device pixel) and `.fixed` (letterboxed) are also available.
 
 ## Development
 
@@ -96,7 +115,7 @@ swift run -c release SynthezBench --snapshot <dir>   # render every page to PNG
 
 ## Acknowledgements
 
-- [synth-ui](https://github.com/unixzii/synth-ui) by Cyandev (MIT) is the model for this project: the immediate-mode API, position-derived keys, previous-frame hit routing, cursor-and-cut layout, the palette, color-map and dither approach, and the CRT pipeline design all follow its lead. SynthezKit is an independent Swift reimplementation for UIKit and is not affiliated with synth-ui or its authors.
+- [synth-ui](https://github.com/unixzii/synth-ui) by Cyandev (MIT) is the model for this project: the immediate-mode API, position-derived keys, previous-frame hit routing, cursor-and-cut layout, the palette, color-map and dither approach, and the CRT pipeline design all follow its lead. SynthezKit is an independent Swift reimplementation for Apple platforms and is not affiliated with synth-ui or its authors.
 - [DisplayLink](https://github.com/Lakr233/DisplayLink) (MIT) drives frames and pauses them when idle.
 - [Litext](https://github.com/Lakr233/Litext) (MIT) informed the frame-time animation model, measurement caching and the habit of measuring before optimizing.
 - [Dear ImGui](https://github.com/ocornut/imgui) for input queue trickling, and Martin Cohen's RectCut for the slicing layout.
