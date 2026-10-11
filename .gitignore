@@ -1,0 +1,9 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+.build/
+.swiftpm/
+build/
+
+# A library leaves dependency resolution to the app that uses it.
+Package.resolved
