@@ -101,7 +101,7 @@ See [Documents/Design.md](./Documents/Design.md) for the architecture and the re
 
 ## Example app
 
-`Example/SynthezKitExample.xcodeproj` is a SwiftUI app for iOS and macOS that runs the gallery: five pages (Core, Controls, Text, Scroll, CRT) that exercise every widget. It references this package locally. Launch it with `-SZDemoTour YES` to watch a scripted walk through every page.
+`Example/SynthezKitExample.xcodeproj` is a SwiftUI app for iOS and macOS that runs the gallery: five pages (Core, Controls, Text, Scroll, CRT) that exercise every widget. It references this package locally. Launch it with `-SZDemoTour YES` to watch a scripted walk through every page; `-SZPointScale 2` and, on the Mac, `-SZWindowSize 1080x842` give integer-scaled 4:3 screenshots like the one above.
 
 Resolution is set in virtual pixels per view point with `.pointScale`, so pixels look the same size on 1×, 2× and 3× screens; `.pixelScale` (per device pixel) and `.fixed` (letterboxed) are also available.
 

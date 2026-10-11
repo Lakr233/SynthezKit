@@ -16,8 +16,14 @@ struct SynthezKitExampleApp: App {
                 .ignoresSafeArea(.keyboard)
         }
         #if !canImport(UIKit) && canImport(AppKit)
-        .defaultSize(width: 1280, height: 800)
+        .defaultSize(Self.windowSize)
         #endif
+    }
+
+    /// `-SZWindowSize 1280x960` sizes the Mac window, for screenshots.
+    static var windowSize: CGSize {
+        let parts = (UserDefaults.standard.string(forKey: "SZWindowSize") ?? "").split(separator: "x").compactMap { Double($0) }
+        return parts.count == 2 ? CGSize(width: parts[0], height: parts[1]) : CGSize(width: 1280, height: 800)
     }
 }
 
@@ -30,13 +36,20 @@ final class GalleryModel {
     weak var canvas: SZCanvasView?
     var tour: DemoTour?
 
-    // One virtual pixel per point on phones; bigger pixels on the Mac,
-    // where windows are wide and seen from further away.
-    #if canImport(UIKit)
-        static let resolution = SZResolution.pointScale(1)
-    #else
-        static let resolution = SZResolution.pointScale(1.5)
-    #endif
+    /// One virtual pixel per point on phones; bigger pixels on the Mac,
+    /// where windows are wide and seen from further away.
+    /// `-SZPointScale 2` overrides it, for screenshots.
+    static var resolution: SZResolution {
+        let override = UserDefaults.standard.double(forKey: "SZPointScale")
+        if override > 0 {
+            return .pointScale(override)
+        }
+        #if canImport(UIKit)
+            return .pointScale(1)
+        #else
+            return .pointScale(1.5)
+        #endif
+    }
 }
 
 struct GalleryView: View {
