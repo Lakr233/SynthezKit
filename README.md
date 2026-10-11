@@ -1,4 +1,4 @@
-![Core page](./Artworks/core.png)
+![SynthezKit on macOS with the CRT post-process](./Artworks/hero.png)
 
 # SynthezKit
 
